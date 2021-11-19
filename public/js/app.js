@@ -1,9 +1,28 @@
 class TimersDashboard extends React.Component {
+  state = {
+    timers: [
+      {
+        title: "Learn React",
+        project: "Web Dominations",
+        id: uuid.v4(),
+        elapsed: 5452000,
+        runningSince: Date.now(),
+      },
+      {
+        title: "Make Beef Curry",
+        project: "GOTTA EAT!",
+        id: uuid.v4(),
+        elapsed: 54100,
+        runningSince: Date.now(),
+      },
+    ],
+  }
+
   render() {
     return (
       <div className="ui three column centered grid">
         <div className="column">
-          <EditableTimerList />
+          <EditableTimerList timers={this.state.timers} />
           <ToggleableTimerForm isOpen={false} />
         </div>
       </div>
@@ -13,24 +32,20 @@ class TimersDashboard extends React.Component {
 
 class EditableTimerList extends React.Component {
   render() {
-    return (
-      <div className="timers">
+    const timers = this.props.timers.map((timer) => {
+      return (
         <EditableTimer
-          title="Learn React"
-          project="Web Domination"
-          elapsed="8985600"
-          runningSince={null}
-          editFormOpen={false}
+          key={timer.id}
+          id={timer.id}
+          title={timer.title}
+          project={timer.project}
+          elapsed={timer.elapsed}
+          runningSince={timer.runningSince}
         />
-        <EditableTimer
-          title="Make reworked portfolio website in React"
-          project="Get a Job"
-          elapsed="8123122"
-          runningSince={null}
-          editFormOpen={true}
-        />
-      </div>
-    )
+      )
+    })
+
+    return <div className="timers">{timers}</div>
   }
 }
 
