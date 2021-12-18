@@ -22,6 +22,20 @@ class TimersDashboard extends React.Component {
     this.createTimer(timer)
   }
 
+  handleEditFormSubmit = (attributes) => {
+    this.updateTimer(attributes)
+  }
+
+  handleTrashClick = (timerId) => {
+    this.deleteTimer(timerId)
+  }
+
+  deleteTimer = (timerId) => {
+    this.setState({
+      timers: this.state.timers.filter((timer) => timer.id !== timerId),
+    })
+  }
+
   createTimer = (timer) => {
     const t = helpers.newTimer(timer)
 
@@ -30,11 +44,30 @@ class TimersDashboard extends React.Component {
     })
   }
 
+  updateTimer = (attributes) => {
+    this.setState({
+      timers: this.state.timers.map((timer) => {
+        if (timer.id === attributes.id) {
+          return Object.assign({}, timer, {
+            title: attributes.title,
+            project: attributes.project,
+          })
+        } else {
+          return timer
+        }
+      }),
+    })
+  }
+
   render() {
     return (
       <div className="ui three column centered grid">
         <div className="column">
-          <EditableTimerList timers={this.state.timers} />
+          <EditableTimerList
+            timers={this.state.timers}
+            onFormSubmit={this.handleEditFormSubmit}
+            onTrashClick={this.handleTrashClick}
+          />
           <ToggleableTimerForm
             onFormSubmit={this.handleCreateFormSubmit}
             isOpen={false}
@@ -57,6 +90,7 @@ class EditableTimerList extends React.Component {
           elapsed={timer.elapsed}
           runningSince={timer.runningSince}
           onFormSubmit={this.props.onFormSubmit}
+          onTrashClick={this.props.onTrashClick}
         />
       )
     })
@@ -83,16 +117,16 @@ class EditableTimer extends React.Component {
     this.closeForm()
   }
 
-  openForm = () => {
-    this.setState({ editFormOpen: true })
-  }
-
   closeForm = () => {
     this.setState({ editFormOpen: false })
   }
 
+  openForm = () => {
+    this.setState({ editFormOpen: true })
+  }
+
   render() {
-    if (this.props.editFormOpen) {
+    if (this.state.editFormOpen) {
       return (
         <TimerForm
           id={this.props.id}
@@ -111,6 +145,7 @@ class EditableTimer extends React.Component {
           elapsed={this.props.elapsed}
           runningSince={this.props.runningSince}
           onEditClick={this.handleEditClick}
+          onTrashClick={this.props.onTrashClick}
         />
       )
     }
@@ -227,9 +262,23 @@ class ToggleableTimerForm extends React.Component {
 }
 
 class Timer extends React.Component {
+  componentDidMount() {
+    this.forceUpdateInterval = setInterval(() => this.forceUpdate(), 50)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.forceUpdateInterval)
+  }
+
+  handleTrashClick = () => {
+    this.props.onTrashClick(this.props.id)
+  }
+
   render() {
-    const elapsedString = helpers.renderElapsedString(this.props.elapsed)
-    console.log(elapsedString)
+    const elapsedString = helpers.renderElapsedString(
+      this.props.elapsed,
+      this.props.runningSince
+    )
 
     return (
       <div className="ui centered card">
@@ -246,7 +295,10 @@ class Timer extends React.Component {
             >
               <i className="edit icon" />
             </span>
-            <span className="right floated trash icon">
+            <span
+              onClick={this.handleTrashClick}
+              className="right floated trash icon"
+            >
               <i className="trash icon" />
             </span>
           </div>
